@@ -1,13 +1,15 @@
 """Command line: doctor, plan, run. Talks to the outside world; core.py decides.
 
-  lombo-app doctor        check the settings and that Jellyfin answers; exit 1 on any failure
-  lombo-app plan          show what would happen; changes nothing, ever
-  lombo-app run [--loop]  do it (alerts only when DRY_RUN=false); --loop repeats every INTERVAL_SECONDS
+lombo-app doctor        check the settings and that Jellyfin answers; exit 1 on any failure
+lombo-app plan          show what would happen; changes nothing, ever
+lombo-app run [--loop]  do it (alerts only when DRY_RUN=false); --loop repeats every INTERVAL_SECONDS
 """
+
 import argparse
 import os
 import sys
 import time
+from collections.abc import Callable
 
 from . import __version__, core, notify
 from .config import Config, ConfigError, from_env
@@ -17,10 +19,20 @@ from .jellyfin import Jellyfin, JellyfinError
 def doctor(cfg: Config) -> int:
     jf = Jellyfin(cfg.jellyfin_url, cfg.jellyfin_api_key)
     ok = True
-    for label, check in (
-        ("Jellyfin reachable", lambda: f"{(i := jf.public_info()).get('ServerName')} {i.get('Version')}"),
-        ("API key accepted", lambda: jf.info() and "yes"),
-    ):
+
+    def reachable() -> str:
+        info = jf.public_info()
+        return f"{info.get('ServerName')} {info.get('Version')}"
+
+    def key_accepted() -> str:
+        jf.info()
+        return "yes"
+
+    checks: list[tuple[str, Callable[[], str]]] = [
+        ("Jellyfin reachable", reachable),
+        ("API key accepted", key_accepted),
+    ]
+    for label, check in checks:
         try:
             print(f"[ ok ] {label}: {check()}")
         except JellyfinError as e:

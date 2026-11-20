@@ -3,6 +3,7 @@
 Every setting has a LOMBO_APP_ prefix so it never collides with another container's variables.
 A bad value stops the app at start-up with a message that names the variable.
 """
+
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
@@ -27,8 +28,8 @@ def _truthy(value: str) -> bool:
 
 
 def from_env(env: dict[str, str]) -> Config:
-    def get(name: str, default: str | None = None) -> str | None:
-        return env.get(PREFIX + name, default)
+    def get(name: str, default: str = "") -> str:
+        return (env.get(PREFIX + name) or default).strip()
 
     url = (get("JELLYFIN_URL") or "").strip().rstrip("/")
     if urlparse(url).scheme not in {"http", "https"} or not urlparse(url).netloc:
