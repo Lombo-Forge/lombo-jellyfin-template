@@ -1,4 +1,5 @@
 """A fake Jellyfin and a fake webhook on localhost, so tests need no real server."""
+
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -35,7 +36,7 @@ class Fake:
                     return self._reply(200, {"ServerName": "Fake"})
                 if self.path == "/Library/VirtualFolders":
                     return self._reply(200, outer.libraries)
-                self._reply(404)
+                return self._reply(404)
 
             def do_POST(self):
                 body = self.rfile.read(int(self.headers.get("Content-Length", 0)))

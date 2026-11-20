@@ -3,9 +3,11 @@
 Authentication uses an API key (Jellyfin: Dashboard > API Keys) in the Authorization header.
 Every failure becomes a JellyfinError with a short message, so callers print it instead of crashing.
 """
+
 import json
 import urllib.error
 import urllib.request
+from typing import Any, cast
 
 
 class JellyfinError(Exception):
@@ -18,25 +20,26 @@ class Jellyfin:
         self.key = api_key
         self.timeout = timeout
 
-    def _get(self, path: str, auth: bool = True):
-        req = urllib.request.Request(self.base + path)
+    def _get(self, path: str, auth: bool = True) -> Any:
+        # S310 is silenced here and below: config.py only accepts http(s) URLs.
+        req = urllib.request.Request(self.base + path)  # noqa: S310
         if auth:
             req.add_header("Authorization", f'MediaBrowser Token="{self.key}"')
         try:
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+            with urllib.request.urlopen(req, timeout=self.timeout) as resp:  # noqa: S310
                 return json.load(resp)
         except urllib.error.HTTPError as e:
             raise JellyfinError(f"{path}: HTTP {e.code}") from e
         except (urllib.error.URLError, OSError, ValueError) as e:
             raise JellyfinError(f"{path}: {e}") from e
 
-    def public_info(self) -> dict:
+    def public_info(self) -> dict[str, Any]:
         """Server name and version. Needs no key, so it tells 'unreachable' apart from 'bad key'."""
-        return self._get("/System/Info/Public", auth=False)
+        return cast(dict[str, Any], self._get("/System/Info/Public", auth=False))
 
-    def info(self) -> dict:
+    def info(self) -> dict[str, Any]:
         """Needs a valid key."""
-        return self._get("/System/Info")
+        return cast(dict[str, Any], self._get("/System/Info"))
 
-    def libraries(self) -> list[dict]:
-        return self._get("/Library/VirtualFolders")
+    def libraries(self) -> list[dict[str, Any]]:
+        return cast(list[dict[str, Any]], self._get("/Library/VirtualFolders"))

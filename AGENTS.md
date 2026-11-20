@@ -43,13 +43,26 @@ Standard library only (add a dependency only when it clearly earns its place).
 ## Test
 
 ```sh
-pip install -e '.[dev]' && pytest -q
-sh scripts/leak-check.sh
+pip install -e '.[dev]'
+pre-commit install            # once: runs the checks below before every commit
+pre-commit run --all-files    # ruff lint + format, strict mypy, file hygiene, leak check
+pytest -q --cov               # tests with coverage (the gate is `fail_under` in pyproject.toml)
 ```
+
+These are the same checks CI runs (one config: `.pre-commit-config.yaml` and `pyproject.toml`), so what passes
+locally passes there. The tooling is the same in every Lombo-Forge repo: ruff for lint and format, strict mypy,
+pytest. Do not loosen a rule to make a change pass; fix the code, or say why in a comment next to a narrow `noqa`.
 
 Without Python installed: `docker run --rm -v "$PWD:/w" -w /w python:3.12-slim sh -c "pip install -q -e '.[dev]' && pytest -q"`.
 Tests use a fake server; before claiming a Jellyfin behaviour works, check it against a throwaway
 Jellyfin container, never someone's real server.
+
+## Working efficiently
+
+- Optional tools that live in your own profile, not in this repo. Skip any you do not have.
+- Graphify: build the code-only graph with `graphify update .` (never `/graphify .`, which costs tokens) and run
+  `graphify query "<question>"` before grepping. `graphify-out/` is generated and gitignored; INFERRED edges are guesses.
+- Ponytail: the smallest change that fully solves the task. Keep diffs small and focused.
 
 ## Skills (`.claude/skills/`)
 

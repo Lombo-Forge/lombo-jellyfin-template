@@ -8,16 +8,20 @@ from lombo_app.jellyfin import Jellyfin, JellyfinError
 
 def test_config_defaults_are_safe(env):
     cfg = from_env(env)
-    assert cfg.dry_run is True and cfg.interval_seconds == 3600
+    assert cfg.dry_run is True
+    assert cfg.interval_seconds == 3600
 
 
-@pytest.mark.parametrize("name,value", [
-    ("LOMBO_APP_JELLYFIN_URL", "jellyfin:8096"),
-    ("LOMBO_APP_JELLYFIN_API_KEY", "changeme"),
-    ("LOMBO_APP_WEBHOOK_URL", "ftp://x"),
-    ("LOMBO_APP_INTERVAL_SECONDS", "5"),
-    ("LOMBO_APP_INTERVAL_SECONDS", "soon"),
-])
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [
+        ("LOMBO_APP_JELLYFIN_URL", "jellyfin:8096"),
+        ("LOMBO_APP_JELLYFIN_API_KEY", "changeme"),
+        ("LOMBO_APP_WEBHOOK_URL", "ftp://x"),
+        ("LOMBO_APP_INTERVAL_SECONDS", "5"),
+        ("LOMBO_APP_INTERVAL_SECONDS", "soon"),
+    ],
+)
 def test_config_rejects_bad_values_and_names_the_setting(env, name, value):
     with pytest.raises(ConfigError, match=name):
         from_env({**env, name: value})
