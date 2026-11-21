@@ -9,6 +9,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def test_rename_leaves_env_and_build_folders_alone(tmp_path):
+    copy = tmp_path / "demo"
+    shutil.copytree(ROOT / "scripts", copy / "scripts")
+    shutil.copytree(ROOT / "src", copy / "src", ignore=shutil.ignore_patterns("__pycache__"))
+    for folder in (".venv", "dist", "build", ".tox"):
+        (copy / folder).mkdir()
+        (copy / folder / "keep.txt").write_text("lombo_app LomboApp", encoding="utf-8")
+    (copy / "notes.txt").write_text("LomboApp é", encoding="utf-8")
+    done = subprocess.run([sys.executable, "scripts/rename.py", "demo"], cwd=copy, capture_output=True, text=True)
+    assert done.returncode == 0, done.stderr
+    for folder in (".venv", "dist", "build", ".tox"):
+        assert (copy / folder / "keep.txt").read_text(encoding="utf-8") == "lombo_app LomboApp"
+    assert (copy / "notes.txt").read_text(encoding="utf-8") == "LomboDemo é"
+
+
 def test_rename_produces_a_clean_working_app(tmp_path):
     copy = tmp_path / "demo"
     shutil.copytree(

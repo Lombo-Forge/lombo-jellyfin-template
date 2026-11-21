@@ -12,7 +12,19 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache", "node_modules", "graphify-out"}
+SKIP_DIRS = {
+    ".git",
+    "__pycache__",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".mypy_cache",
+    "node_modules",
+    "graphify-out",
+    ".venv",
+    "dist",
+    "build",
+    ".tox",
+}
 TEMPLATE_ONLY = [
     "scripts/rename.py",
     "templates",
@@ -56,7 +68,7 @@ def main(argv: list[str]) -> int:
         if path.is_dir() or any(part in SKIP_DIRS for part in path.relative_to(ROOT).parts):
             continue
         try:
-            text = path.read_text()
+            text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue  # images and other binaries
         out = text
@@ -65,7 +77,7 @@ def main(argv: list[str]) -> int:
         if not keep:
             out = re.sub(r"<!-- template:begin -->.*?<!-- template:end -->\n?", "", out, flags=re.S)
         if out != text:
-            path.write_text(out)
+            path.write_text(out, encoding="utf-8")
 
     pkg = ROOT / "src" / "lombo_app"
     if pkg.exists():
