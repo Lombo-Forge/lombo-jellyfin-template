@@ -23,8 +23,14 @@ class Config:
     interval_seconds: int
 
 
-def _truthy(value: str) -> bool:
-    return value.strip().lower() in {"1", "true", "yes", "on"}
+def _truthy(value: str, name: str) -> bool:
+    """Strict on/off: a typo such as DRY_RUN=treu is an error, never a silent 'off'."""
+    word = value.strip().lower()
+    if word in {"1", "true", "yes", "on"}:
+        return True
+    if word in {"0", "false", "no", "off"}:
+        return False
+    raise ConfigError(f"{PREFIX}{name} must be true or false (got {value!r})")
 
 
 def from_env(env: dict[str, str]) -> Config:
@@ -51,4 +57,4 @@ def from_env(env: dict[str, str]) -> Config:
         raise ConfigError(f"{PREFIX}INTERVAL_SECONDS must be at least 60")
 
     # Safe by default: nothing changes anything until the person sets DRY_RUN=false.
-    return Config(url, key, webhook, _truthy(get("DRY_RUN", "true") or "true"), interval)
+    return Config(url, key, webhook, _truthy(get("DRY_RUN", "true") or "true", "DRY_RUN"), interval)
