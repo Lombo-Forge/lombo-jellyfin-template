@@ -6,6 +6,7 @@
 - [Colours and type](#colours-and-type)
 - [The seal and the L](#the-seal-and-the-l)
 - [What every app needs](#what-every-app-needs)
+- [Jellyfin plugins: the catalogue image](#jellyfin-plugins-the-catalogue-image)
 - [What to avoid](#what-to-avoid)
 
 ## The rule
@@ -40,6 +41,17 @@ above the foot). Banners use the same seal on the left and the wordmark on the r
 
 SVG text uses fonts the viewer may not have, so export the PNG versions with the font installed
 and use those where exact lettering matters.
+
+## Jellyfin plugins: the catalogue image
+
+A plugin (not a container app) also needs an image for Jellyfin's plugin catalogue, or Jellyfin shows its grey
+puzzle piece. Every plugin in the hub's `manifest.json` has an `imageUrl`:
+
+- Make a **960 x 540 PNG** (the catalogue tile is wide and crops to fill it): the 512 px icon centred, about 420 px
+  high, on `#111111`. Do not use the 1200 x 300 banner: it would be cropped.
+- Put it in the hub repository at `site/assets/apps/<name>.png`, and set `"imageUrl"` on the plugin's entry in the
+  hub's `manifest.json` to `https://lombo-forge.github.io/lombo/assets/apps/<name>.png`.
+- After the hub's Pages build, open the plugin's catalogue page in Jellyfin and check the image shows.
 
 ## What to avoid
 
